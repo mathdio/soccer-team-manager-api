@@ -1,7 +1,11 @@
 const express = require('express');
+require('express-async-errors'); 
+
 const validateTeam = require('./middlewares/validateTeam');
+const apiCredentials = require('./middlewares/apiCredentials');
 
 const app = express();
+app.use(apiCredentials);
 
 app.use(express.json());
 // serve para “instalar” algumas coisas que queremos em nossas APIs
