@@ -1,5 +1,7 @@
 const express = require('express');
-require('express-async-errors'); 
+require('express-async-errors');
+const morgan = require('morgan');
+const cors = require('cors');
 
 const validateTeam = require('./middlewares/validateTeam');
 const apiCredentials = require('./middlewares/apiCredentials');
@@ -8,8 +10,8 @@ const app = express();
 app.use(apiCredentials);
 
 app.use(express.json());
-// serve para “instalar” algumas coisas que queremos em nossas APIs
-// Dentro do app.use(), passamos uma outra função é ela que habilita a possibilidade de recebermos dados pelo corpo (body) de nossa requisição.
+app.use(morgan('dev'));
+app.use(cors());
 
 const teams = [
   {
@@ -23,6 +25,8 @@ const teams = [
     initials: 'CAM',
   },
 ];
+
+let nextId = 3;
 // s4-d4 Para fixar:
 // 1 - 🚀 Crie um middleware existingId para garantir que o id passado como parâmetro na rota GET /teams/:id existe no objeto teams. Refatore essa rota para usar o middleware.
 // 2 - 🚀 Reaproveite esse middleware e refatore as rotas PUT /teams/:id e DELETE /teams/:id para usarem ele também.
@@ -43,8 +47,14 @@ app.get('/teams', (req, res) => res.status(200).json({ teams }));
 
 // Cadastrando times por meio do método POST
 app.post('/teams', validateTeam, (req, res) => {
-  const newTeam = { ...req.body };
+  // if (!req.teams.teams.includes(req.body.initials)
+  // && teams.every((t) => t.initials !== req.body.initials)) {
+  //   return res.sendStatus(401);
+  // }
+
+  const newTeam = { id: nextId, ...req.body };
   teams.push(newTeam);
+  nextId += 1;
   res.status(201).json({ team: newTeam });
 });
 
@@ -82,5 +92,8 @@ app.get('/teams/:id', existingId, (req, res) => {
 });
 
 app.get('/', (req, res) => res.status(200).json({ message: 'Olá Mundo!' }));
+
+// se ninguém respondeu, vai cair neste middleware
+app.use((req, res) => res.sendStatus(404));
 
 module.exports = app;
